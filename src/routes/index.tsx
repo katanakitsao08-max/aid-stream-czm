@@ -76,6 +76,3 @@ function Landing() {
     </div>
   );
 }
-
-// keep redirect import used by other files
-void redirect;
