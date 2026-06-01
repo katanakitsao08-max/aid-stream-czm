@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, ChevronRight, HeartHandshake } from "lucide-react";
 import { toast } from "sonner";
-import { formatKES } from "./dashboard";
+import { formatKES } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/events/")({
   head: () => ({ meta: [{ title: "Welfare Events — CZMT" }] }),
