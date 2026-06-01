@@ -14,16 +14,213 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contributions: {
+        Row: {
+          amount: number
+          contributor_id: string
+          created_at: string
+          event_id: string
+          id: string
+          notes: string | null
+          paid_at: string
+          recorded_by: string | null
+        }
+        Insert: {
+          amount: number
+          contributor_id: string
+          created_at?: string
+          event_id: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          recorded_by?: string | null
+        }
+        Update: {
+          amount?: number
+          contributor_id?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          recorded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contributions_contributor_id_fkey"
+            columns: ["contributor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contributions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "welfare_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dependants: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          id: string
+          member_id: string
+          name: string
+          relationship: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          id?: string
+          member_id: string
+          name: string
+          relationship: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          id?: string
+          member_id?: string
+          name?: string
+          relationship?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dependants_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          phone: string | null
+          school: string | null
+          staff_number: string | null
+          updated_at: string
+          user_id: string
+          zone: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          school?: string | null
+          staff_number?: string | null
+          updated_at?: string
+          user_id: string
+          zone?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          school?: string | null
+          staff_number?: string | null
+          updated_at?: string
+          user_id?: string
+          zone?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      welfare_events: {
+        Row: {
+          affected_member_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_date: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          status: Database["public"]["Enums"]["event_status"]
+          target_amount: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_member_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          target_amount?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_member_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          target_amount?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "welfare_events_affected_member_id_fkey"
+            columns: ["affected_member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "member"
+      event_status: "open" | "closed"
+      event_type: "bereavement" | "emergency" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +347,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "member"],
+      event_status: ["open", "closed"],
+      event_type: ["bereavement", "emergency", "other"],
+    },
   },
 } as const
