@@ -67,7 +67,9 @@ function EventDetail() {
     return <p className="text-muted-foreground">Loading event…</p>;
   }
 
-  const collected = contributions.reduce((s: number, c: any) => s + Number(c.amount), 0);
+  const confirmedContribs = contributions.filter((c: any) => c.status !== "pending");
+  const pendingContribs = contributions.filter((c: any) => c.status === "pending");
+  const collected = confirmedContribs.reduce((s: number, c: any) => s + Number(c.amount), 0);
   const target = Number(event.target_amount ?? 0);
   const pct = target > 0 ? Math.min(100, Math.round((collected / target) * 100)) : 0;
   const funded = target > 0 && collected >= target;
