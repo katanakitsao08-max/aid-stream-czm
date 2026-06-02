@@ -64,7 +64,7 @@ function AuthLayout() {
           <span className="font-semibold tracking-tight">CZMT Welfare</span>
         </div>
         <nav className="flex flex-col gap-1 p-3">
-          {nav.map((n) => {
+          {[...nav, ...(isAdmin ? adminNav : [])].map((n) => {
             const active = location.pathname.startsWith(n.to);
             return (
               <Link
