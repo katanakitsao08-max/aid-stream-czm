@@ -46,6 +46,8 @@ function Dashboard() {
         <p className="text-sm text-muted-foreground">Welfare activity at a glance.</p>
       </div>
 
+      <ClaimProfileBanner />
+
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard icon={Users} label="Total members" value={data?.memberCount ?? "—"} />
         <StatCard icon={AlertCircle} label="Active welfare events" value={data?.openCount ?? "—"} accent="warning" />
