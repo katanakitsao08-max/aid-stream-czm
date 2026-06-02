@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, HeartHandshake, Banknote, AlertCircle } from "lucide-react";
 import { formatKES } from "@/lib/format";
+import { ClaimProfileBanner } from "@/components/ClaimProfileBanner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CZMT Welfare" }] }),
