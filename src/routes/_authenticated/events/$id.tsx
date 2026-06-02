@@ -161,20 +161,98 @@ function EventDetail() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">Contributions</CardTitle>
-          {isAdmin && (
-            <AddContributionDialog
-              eventId={id}
-              members={members}
-              onSaved={() => {
-                qc.invalidateQueries({ queryKey: ["contributions", id] });
-                qc.invalidateQueries({ queryKey: ["event-totals"] });
-              }}
-            />
-          )}
+          <div className="flex gap-2">
+            {profile && event.status === "open" && (
+              <MpesaPayDialog
+                eventId={id}
+                eventTitle={event.title}
+                contributorId={profile.id}
+                onSaved={() => qc.invalidateQueries({ queryKey: ["contributions", id] })}
+              />
+            )}
+            {isAdmin && (
+              <AddContributionDialog
+                eventId={id}
+                members={members}
+                onSaved={() => {
+                  qc.invalidateQueries({ queryKey: ["contributions", id] });
+                  qc.invalidateQueries({ queryKey: ["event-totals"] });
+                }}
+              />
+            )}
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          {pendingContribs.length > 0 && (
+            <div>
+              <p className="mb-2 text-sm font-medium">
+                Pending M-Pesa submissions ({pendingContribs.length})
+              </p>
+              <div className="overflow-x-auto rounded-md border border-warning/40 bg-warning/5">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Contributor</TableHead>
+                      <TableHead>M-Pesa code</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="w-32"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingContribs.map((c: any) => (
+                      <TableRow key={c.id}>
+                        <TableCell>{c.paid_at}</TableCell>
+                        <TableCell className="font-medium">{c.contributor?.full_name ?? "—"}</TableCell>
+                        <TableCell className="font-mono text-xs uppercase">{c.mpesa_code ?? "—"}</TableCell>
+                        <TableCell className="text-right">{formatKES(Number(c.amount))}</TableCell>
+                        <TableCell className="text-right">
+                          {isAdmin ? (
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={async () => {
+                                  const { error } = await supabase
+                                    .from("contributions")
+                                    .update({ status: "confirmed" })
+                                    .eq("id", c.id);
+                                  if (error) toast.error(error.message);
+                                  else {
+                                    toast.success("Confirmed");
+                                    qc.invalidateQueries({ queryKey: ["contributions", id] });
+                                  }
+                                }}
+                              >
+                                <CheckCircle2 className="mr-1 h-4 w-4" /> Confirm
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={async () => {
+                                  if (!confirm("Reject this submission?")) return;
+                                  const { error } = await supabase.from("contributions").delete().eq("id", c.id);
+                                  if (error) toast.error(error.message);
+                                  else qc.invalidateQueries({ queryKey: ["contributions", id] });
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Badge variant="secondary">Awaiting admin</Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -188,7 +266,7 @@ function EventDetail() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contributions.map((c: any) => (
+                {confirmedContribs.map((c: any) => (
                   <TableRow key={c.id}>
                     <TableCell>{c.paid_at}</TableCell>
                     <TableCell className="font-medium">{c.contributor?.full_name ?? "—"}</TableCell>
@@ -217,10 +295,10 @@ function EventDetail() {
                     )}
                   </TableRow>
                 ))}
-                {contributions.length === 0 && (
+                {confirmedContribs.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={isAdmin ? 6 : 5} className="py-8 text-center text-muted-foreground">
-                      No contributions recorded yet.
+                      No confirmed contributions yet.
                     </TableCell>
                   </TableRow>
                 )}
@@ -230,6 +308,92 @@ function EventDetail() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+const MPESA_PHONE = "0701594268";
+
+function MpesaPayDialog({
+  eventId, eventTitle, contributorId, onSaved,
+}: {
+  eventId: string;
+  eventTitle: string;
+  contributorId: string;
+  onSaved: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [code, setCode] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = Number(amount);
+    const trimmed = code.trim().toUpperCase();
+    if (!amt || amt <= 0) return toast.error("Enter a valid amount");
+    if (trimmed.length < 6) return toast.error("Enter the M-Pesa confirmation code");
+    setSaving(true);
+    const { error } = await supabase.from("contributions").insert({
+      event_id: eventId,
+      contributor_id: contributorId,
+      amount: amt,
+      mpesa_code: trimmed,
+      status: "pending",
+      notes: `M-Pesa to ${MPESA_PHONE}`,
+    });
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Submitted — awaiting admin confirmation");
+    setOpen(false);
+    setAmount(""); setCode("");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="default">
+          <Smartphone className="mr-2 h-4 w-4" /> Pay via M-Pesa
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Pay via M-Pesa</DialogTitle></DialogHeader>
+        <div className="rounded-md border border-accent/40 bg-accent/5 p-4 text-sm">
+          <p className="font-medium">Send your contribution using M-Pesa:</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-foreground/90">
+            <li>Open M-Pesa → <span className="font-medium">Send Money</span></li>
+            <li>Phone number: <span className="font-mono text-base font-semibold">{MPESA_PHONE}</span></li>
+            <li>Enter the amount you want to contribute</li>
+            <li>Reference: <span className="font-medium">{eventTitle}</span></li>
+            <li>Enter your M-Pesa PIN and confirm</li>
+            <li>Paste the confirmation code (e.g. <span className="font-mono">SLM7XX9ABC</span>) below</li>
+          </ol>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Amount (KES)</Label>
+              <Input type="number" min={1} required value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>M-Pesa code</Label>
+              <Input
+                required
+                placeholder="e.g. SLM7XX9ABC"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                className="font-mono uppercase"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Submitting…" : "Submit for confirmation"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
