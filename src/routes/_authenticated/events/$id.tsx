@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/events/$id")({
 
 function EventDetail() {
   const { id } = Route.useParams();
-  const { isAdmin } = useAuth();
+  const { isAdmin, profile } = useAuth();
   const qc = useQueryClient();
 
   const { data: event } = useQuery({
