@@ -16,7 +16,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, Download, Lock, Unlock } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Download, Lock, Unlock, Smartphone, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatKES } from "@/lib/format";
 
