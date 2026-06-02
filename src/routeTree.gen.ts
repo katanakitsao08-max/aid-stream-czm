@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedDependantsRouteImport } from './routes/_authenticated/dependants'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -31,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
   id: '/members',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dependants': typeof AuthenticatedDependantsRoute
   '/members': typeof AuthenticatedMembersRoute
+  '/roles': typeof AuthenticatedRolesRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
 }
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dependants': typeof AuthenticatedDependantsRoute
   '/members': typeof AuthenticatedMembersRoute
+  '/roles': typeof AuthenticatedRolesRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
   '/events': typeof AuthenticatedEventsIndexRoute
 }
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dependants': typeof AuthenticatedDependantsRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
+  '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/events/$id': typeof AuthenticatedEventsIdRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
 }
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dependants'
     | '/members'
+    | '/roles'
     | '/events/$id'
     | '/events/'
   fileRoutesByTo: FileRoutesByTo
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dependants'
     | '/members'
+    | '/roles'
     | '/events/$id'
     | '/events'
   id:
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/dependants'
     | '/_authenticated/members'
+    | '/_authenticated/roles'
     | '/_authenticated/events/$id'
     | '/_authenticated/events/'
   fileRoutesById: FileRoutesById
@@ -147,6 +159,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/roles': {
+      id: '/_authenticated/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof AuthenticatedRolesRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/members': {
       id: '/_authenticated/members'
@@ -190,6 +209,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDependantsRoute: typeof AuthenticatedDependantsRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
+  AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
   AuthenticatedEventsIdRoute: typeof AuthenticatedEventsIdRoute
   AuthenticatedEventsIndexRoute: typeof AuthenticatedEventsIndexRoute
 }
@@ -198,6 +218,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDependantsRoute: AuthenticatedDependantsRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
+  AuthenticatedRolesRoute: AuthenticatedRolesRoute,
   AuthenticatedEventsIdRoute: AuthenticatedEventsIdRoute,
   AuthenticatedEventsIndexRoute: AuthenticatedEventsIndexRoute,
 }

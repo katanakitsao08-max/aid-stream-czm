@@ -9,6 +9,7 @@ import {
   Baby,
   LogOut,
   Menu,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,11 @@ const nav = [
   { to: "/members", label: "Members", icon: Users },
   { to: "/dependants", label: "Dependants", icon: Baby },
 ];
+
+const adminNav = [
+  { to: "/roles", label: "Role Management", icon: ShieldCheck },
+];
+
 
 function AuthLayout() {
   const { user, isLoading, profile, isAdmin, signOut } = useAuth();
@@ -58,7 +64,7 @@ function AuthLayout() {
           <span className="font-semibold tracking-tight">CZMT Welfare</span>
         </div>
         <nav className="flex flex-col gap-1 p-3">
-          {nav.map((n) => {
+          {[...nav, ...(isAdmin ? adminNav : [])].map((n) => {
             const active = location.pathname.startsWith(n.to);
             return (
               <Link
