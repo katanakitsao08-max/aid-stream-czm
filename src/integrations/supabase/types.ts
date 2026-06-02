@@ -21,9 +21,11 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          mpesa_code: string | null
           notes: string | null
           paid_at: string
           recorded_by: string | null
+          status: Database["public"]["Enums"]["contribution_status"]
         }
         Insert: {
           amount: number
@@ -31,9 +33,11 @@ export type Database = {
           created_at?: string
           event_id: string
           id?: string
+          mpesa_code?: string | null
           notes?: string | null
           paid_at?: string
           recorded_by?: string | null
+          status?: Database["public"]["Enums"]["contribution_status"]
         }
         Update: {
           amount?: number
@@ -41,9 +45,11 @@ export type Database = {
           created_at?: string
           event_id?: string
           id?: string
+          mpesa_code?: string | null
           notes?: string | null
           paid_at?: string
           recorded_by?: string | null
+          status?: Database["public"]["Enums"]["contribution_status"]
         }
         Relationships: [
           {
@@ -133,6 +139,53 @@ export type Database = {
         }
         Relationships: []
       }
+      staged_teachers: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          school: string | null
+          staff_number: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          school?: string | null
+          staff_number?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          school?: string | null
+          staff_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staged_teachers_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -219,6 +272,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "member" | "committee"
+      contribution_status: "pending" | "confirmed"
       event_status: "open" | "closed"
       event_type: "bereavement" | "emergency" | "other"
     }
@@ -349,6 +403,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "member", "committee"],
+      contribution_status: ["pending", "confirmed"],
       event_status: ["open", "closed"],
       event_type: ["bereavement", "emergency", "other"],
     },

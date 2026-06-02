@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, HeartHandshake, Banknote, AlertCircle } from "lucide-react";
 import { formatKES } from "@/lib/format";
+import { ClaimProfileBanner } from "@/components/ClaimProfileBanner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CZMT Welfare" }] }),
@@ -44,6 +45,8 @@ function Dashboard() {
         <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
         <p className="text-sm text-muted-foreground">Welfare activity at a glance.</p>
       </div>
+
+      <ClaimProfileBanner />
 
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard icon={Users} label="Total members" value={data?.memberCount ?? "—"} />

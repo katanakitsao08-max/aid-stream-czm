@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRosterRouteImport } from './routes/_authenticated/roster'
 import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedDependantsRouteImport } from './routes/_authenticated/dependants'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRosterRoute = AuthenticatedRosterRouteImport.update({
+  id: '/roster',
+  path: '/roster',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
   id: '/roles',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/dependants': typeof AuthenticatedDependantsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/roles': typeof AuthenticatedRolesRoute
+  '/roster': typeof AuthenticatedRosterRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
 }
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/dependants': typeof AuthenticatedDependantsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/roles': typeof AuthenticatedRolesRoute
+  '/roster': typeof AuthenticatedRosterRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
   '/events': typeof AuthenticatedEventsIndexRoute
 }
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_authenticated/dependants': typeof AuthenticatedDependantsRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
+  '/_authenticated/roster': typeof AuthenticatedRosterRoute
   '/_authenticated/events/$id': typeof AuthenticatedEventsIdRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
 }
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/dependants'
     | '/members'
     | '/roles'
+    | '/roster'
     | '/events/$id'
     | '/events/'
   fileRoutesByTo: FileRoutesByTo
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/dependants'
     | '/members'
     | '/roles'
+    | '/roster'
     | '/events/$id'
     | '/events'
   id:
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dependants'
     | '/_authenticated/members'
     | '/_authenticated/roles'
+    | '/_authenticated/roster'
     | '/_authenticated/events/$id'
     | '/_authenticated/events/'
   fileRoutesById: FileRoutesById
@@ -159,6 +171,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/roster': {
+      id: '/_authenticated/roster'
+      path: '/roster'
+      fullPath: '/roster'
+      preLoaderRoute: typeof AuthenticatedRosterRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/roles': {
       id: '/_authenticated/roles'
@@ -210,6 +229,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDependantsRoute: typeof AuthenticatedDependantsRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
+  AuthenticatedRosterRoute: typeof AuthenticatedRosterRoute
   AuthenticatedEventsIdRoute: typeof AuthenticatedEventsIdRoute
   AuthenticatedEventsIndexRoute: typeof AuthenticatedEventsIndexRoute
 }
@@ -219,6 +239,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDependantsRoute: AuthenticatedDependantsRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedRolesRoute: AuthenticatedRolesRoute,
+  AuthenticatedRosterRoute: AuthenticatedRosterRoute,
   AuthenticatedEventsIdRoute: AuthenticatedEventsIdRoute,
   AuthenticatedEventsIndexRoute: AuthenticatedEventsIndexRoute,
 }

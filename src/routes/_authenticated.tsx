@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ const nav = [
 
 const adminNav = [
   { to: "/roles", label: "Role Management", icon: ShieldCheck },
+  { to: "/roster", label: "Teacher Roster", icon: FileSpreadsheet },
 ];
 
 
