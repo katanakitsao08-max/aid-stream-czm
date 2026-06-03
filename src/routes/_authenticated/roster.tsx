@@ -133,9 +133,29 @@ function RosterPage() {
   });
 
   const handleFile = (f: File) => {
-    const reader = new FileReader();
-    reader.onload = () => setCsv(String(reader.result ?? ""));
-    reader.readAsText(f);
+    const name = f.name.toLowerCase();
+    const isExcel = name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".xlsm");
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const rows = parseExcel(reader.result as ArrayBuffer);
+          if (!rows.length) {
+            toast.error("No valid rows found. Check column headers (need name & email).");
+            return;
+          }
+          setCsv(rowsToCSV(rows));
+          toast.success(`Loaded ${rows.length} row${rows.length === 1 ? "" : "s"} from Excel — review then click Import`);
+        } catch (e: any) {
+          toast.error(`Could not read Excel file: ${e.message ?? e}`);
+        }
+      };
+      reader.readAsArrayBuffer(f);
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => setCsv(String(reader.result ?? ""));
+      reader.readAsText(f);
+    }
   };
 
   const handleImport = async () => {
@@ -175,19 +195,19 @@ function RosterPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Import CSV</CardTitle>
+          <CardTitle className="text-base">Import from Excel or CSV</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <input
               ref={fileRef}
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,.xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               className="hidden"
               onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
             />
             <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" /> Choose CSV file
+              <Upload className="mr-2 h-4 w-4" /> Choose Excel / CSV file
             </Button>
             <Button
               variant="ghost"
@@ -197,9 +217,10 @@ function RosterPage() {
               Load template
             </Button>
             <span className="text-xs text-muted-foreground">
-              Columns: <code>full_name</code>, <code>email</code> (required), <code>staff_number</code>, <code>school</code>, <code>phone</code>
+              Required columns: <code>full_name</code> (or Name), <code>email</code>. Optional: <code>staff_number</code> (TSC), <code>school</code>, <code>phone</code>.
             </span>
           </div>
+
           <Textarea
             value={csv}
             onChange={(e) => setCsv(e.target.value)}
