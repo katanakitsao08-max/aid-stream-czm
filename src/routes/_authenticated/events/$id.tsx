@@ -262,7 +262,7 @@ function EventDetail() {
                   <TableHead>School</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Notes</TableHead>
-                  {isAdmin && <TableHead className="w-12"></TableHead>}
+                  <TableHead className="w-12 text-right">Receipt</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
