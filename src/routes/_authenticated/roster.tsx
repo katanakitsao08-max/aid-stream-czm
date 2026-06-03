@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/table";
 import { Upload, FileSpreadsheet, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
+
 
 export const Route = createFileRoute("/_authenticated/roster")({
   head: () => ({ meta: [{ title: "Teacher Roster — CZMT Welfare" }] }),
@@ -58,6 +60,53 @@ function parseCSV(text: string): StagedRow[] {
   }).filter((r) => r.full_name && r.email);
 }
 
+const HEADER_ALIASES: Record<keyof StagedRow, string[]> = {
+  full_name: ["full_name", "fullname", "name", "full name", "teacher name", "teacher"],
+  email: ["email", "email address", "e-mail", "mail"],
+  staff_number: ["staff_number", "staff no", "staff number", "staff", "tsc", "tsc number", "tsc no"],
+  school: ["school", "school name", "station"],
+  phone: ["phone", "phone number", "mobile", "tel", "telephone", "msisdn"],
+};
+
+function normalizeHeader(h: string): keyof StagedRow | null {
+  const key = String(h ?? "").trim().toLowerCase();
+  for (const field of Object.keys(HEADER_ALIASES) as (keyof StagedRow)[]) {
+    if (HEADER_ALIASES[field].includes(key)) return field;
+  }
+  return null;
+}
+
+function parseExcel(buffer: ArrayBuffer): StagedRow[] {
+  const wb = XLSX.read(buffer, { type: "array" });
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  if (!sheet) return [];
+  const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+  return json
+    .map((row) => {
+      const out: Partial<StagedRow> = {};
+      for (const [k, v] of Object.entries(row)) {
+        const field = normalizeHeader(k);
+        if (!field) continue;
+        const val = String(v ?? "").trim();
+        if (field === "email") out.email = val.toLowerCase();
+        else (out as any)[field] = val || null;
+      }
+      return out;
+    })
+    .filter((r): r is StagedRow => !!r.full_name && !!r.email);
+}
+
+function rowsToCSV(rows: StagedRow[]): string {
+  const header = "full_name,email,staff_number,school,phone";
+  const body = rows.map((r) =>
+    [r.full_name, r.email, r.staff_number ?? "", r.school ?? "", r.phone ?? ""]
+      .map((v) => String(v).replace(/,/g, " "))
+      .join(","),
+  );
+  return [header, ...body].join("\n");
+}
+
+
 function RosterPage() {
   const { isAdmin, isLoading, profile } = useAuth();
   const navigate = useNavigate();
@@ -84,9 +133,29 @@ function RosterPage() {
   });
 
   const handleFile = (f: File) => {
-    const reader = new FileReader();
-    reader.onload = () => setCsv(String(reader.result ?? ""));
-    reader.readAsText(f);
+    const name = f.name.toLowerCase();
+    const isExcel = name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".xlsm");
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const rows = parseExcel(reader.result as ArrayBuffer);
+          if (!rows.length) {
+            toast.error("No valid rows found. Check column headers (need name & email).");
+            return;
+          }
+          setCsv(rowsToCSV(rows));
+          toast.success(`Loaded ${rows.length} row${rows.length === 1 ? "" : "s"} from Excel — review then click Import`);
+        } catch (e: any) {
+          toast.error(`Could not read Excel file: ${e.message ?? e}`);
+        }
+      };
+      reader.readAsArrayBuffer(f);
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => setCsv(String(reader.result ?? ""));
+      reader.readAsText(f);
+    }
   };
 
   const handleImport = async () => {
@@ -126,19 +195,19 @@ function RosterPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Import CSV</CardTitle>
+          <CardTitle className="text-base">Import from Excel or CSV</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <input
               ref={fileRef}
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,.xlsx,.xls,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               className="hidden"
               onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
             />
             <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" /> Choose CSV file
+              <Upload className="mr-2 h-4 w-4" /> Choose Excel / CSV file
             </Button>
             <Button
               variant="ghost"
@@ -148,9 +217,10 @@ function RosterPage() {
               Load template
             </Button>
             <span className="text-xs text-muted-foreground">
-              Columns: <code>full_name</code>, <code>email</code> (required), <code>staff_number</code>, <code>school</code>, <code>phone</code>
+              Required columns: <code>full_name</code> (or Name), <code>email</code>. Optional: <code>staff_number</code> (TSC), <code>school</code>, <code>phone</code>.
             </span>
           </div>
+
           <Textarea
             value={csv}
             onChange={(e) => setCsv(e.target.value)}
