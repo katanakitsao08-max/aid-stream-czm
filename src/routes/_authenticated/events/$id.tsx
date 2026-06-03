@@ -16,7 +16,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, Download, Lock, Unlock, Smartphone, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Download, Lock, Unlock, Smartphone, CheckCircle2, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { formatKES } from "@/lib/format";
 
@@ -262,7 +262,7 @@ function EventDetail() {
                   <TableHead>School</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Notes</TableHead>
-                  {isAdmin && <TableHead className="w-12"></TableHead>}
+                  <TableHead className="w-12 text-right">Receipt</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -273,23 +273,38 @@ function EventDetail() {
                     <TableCell>{c.contributor?.school ?? "—"}</TableCell>
                     <TableCell className="text-right">{formatKES(Number(c.amount))}</TableCell>
                     <TableCell className="max-w-xs truncate">{c.notes ?? ""}</TableCell>
-                    {isAdmin && (
+                    {isAdmin ? (
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={async () => {
-                            if (!confirm("Delete this contribution?")) return;
-                            const { error } = await supabase.from("contributions").delete().eq("id", c.id);
-                            if (error) toast.error(error.message);
-                            else {
-                              toast.success("Deleted");
-                              qc.invalidateQueries({ queryKey: ["contributions", id] });
-                              qc.invalidateQueries({ queryKey: ["event-totals"] });
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                        <div className="flex justify-end gap-1">
+                          <Button asChild variant="ghost" size="icon" title="View receipt">
+                            <Link to="/receipts/$contributionId" params={{ contributionId: c.id }} target="_blank">
+                              <Receipt className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={async () => {
+                              if (!confirm("Delete this contribution?")) return;
+                              const { error } = await supabase.from("contributions").delete().eq("id", c.id);
+                              if (error) toast.error(error.message);
+                              else {
+                                toast.success("Deleted");
+                                qc.invalidateQueries({ queryKey: ["contributions", id] });
+                                qc.invalidateQueries({ queryKey: ["event-totals"] });
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    ) : (
+                      <TableCell>
+                        <Button asChild variant="ghost" size="sm" title="View receipt">
+                          <Link to="/receipts/$contributionId" params={{ contributionId: c.id }} target="_blank">
+                            <Receipt className="mr-1 h-4 w-4" /> Receipt
+                          </Link>
                         </Button>
                       </TableCell>
                     )}
@@ -297,7 +312,7 @@ function EventDetail() {
                 ))}
                 {confirmedContribs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 6 : 5} className="py-8 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                       No confirmed contributions yet.
                     </TableCell>
                   </TableRow>
