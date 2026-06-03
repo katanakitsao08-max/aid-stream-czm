@@ -60,6 +60,53 @@ function parseCSV(text: string): StagedRow[] {
   }).filter((r) => r.full_name && r.email);
 }
 
+const HEADER_ALIASES: Record<keyof StagedRow, string[]> = {
+  full_name: ["full_name", "fullname", "name", "full name", "teacher name", "teacher"],
+  email: ["email", "email address", "e-mail", "mail"],
+  staff_number: ["staff_number", "staff no", "staff number", "staff", "tsc", "tsc number", "tsc no"],
+  school: ["school", "school name", "station"],
+  phone: ["phone", "phone number", "mobile", "tel", "telephone", "msisdn"],
+};
+
+function normalizeHeader(h: string): keyof StagedRow | null {
+  const key = String(h ?? "").trim().toLowerCase();
+  for (const field of Object.keys(HEADER_ALIASES) as (keyof StagedRow)[]) {
+    if (HEADER_ALIASES[field].includes(key)) return field;
+  }
+  return null;
+}
+
+function parseExcel(buffer: ArrayBuffer): StagedRow[] {
+  const wb = XLSX.read(buffer, { type: "array" });
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  if (!sheet) return [];
+  const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+  return json
+    .map((row) => {
+      const out: Partial<StagedRow> = {};
+      for (const [k, v] of Object.entries(row)) {
+        const field = normalizeHeader(k);
+        if (!field) continue;
+        const val = String(v ?? "").trim();
+        if (field === "email") out.email = val.toLowerCase();
+        else (out as any)[field] = val || null;
+      }
+      return out;
+    })
+    .filter((r): r is StagedRow => !!r.full_name && !!r.email);
+}
+
+function rowsToCSV(rows: StagedRow[]): string {
+  const header = "full_name,email,staff_number,school,phone";
+  const body = rows.map((r) =>
+    [r.full_name, r.email, r.staff_number ?? "", r.school ?? "", r.phone ?? ""]
+      .map((v) => String(v).replace(/,/g, " "))
+      .join(","),
+  );
+  return [header, ...body].join("\n");
+}
+
+
 function RosterPage() {
   const { isAdmin, isLoading, profile } = useAuth();
   const navigate = useNavigate();
