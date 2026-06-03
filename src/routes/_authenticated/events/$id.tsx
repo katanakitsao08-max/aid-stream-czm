@@ -312,7 +312,7 @@ function EventDetail() {
                 ))}
                 {confirmedContribs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 6 : 5} className="py-8 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                       No confirmed contributions yet.
                     </TableCell>
                   </TableRow>
