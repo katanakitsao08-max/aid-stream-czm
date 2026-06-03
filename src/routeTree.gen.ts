@@ -18,6 +18,7 @@ import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDependantsRouteImport } from './routes/_authenticated/dependants'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events/index'
+import { Route as AuthenticatedReceiptsContributionIdRouteImport } from './routes/_authenticated/receipts/$contributionId'
 import { Route as AuthenticatedEventsIdRouteImport } from './routes/_authenticated/events/$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -65,6 +66,12 @@ const AuthenticatedEventsIndexRoute =
     path: '/events/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedReceiptsContributionIdRoute =
+  AuthenticatedReceiptsContributionIdRouteImport.update({
+    id: '/receipts/$contributionId',
+    path: '/receipts/$contributionId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedEventsIdRoute = AuthenticatedEventsIdRouteImport.update({
   id: '/events/$id',
   path: '/events/$id',
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/roles': typeof AuthenticatedRolesRoute
   '/roster': typeof AuthenticatedRosterRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
+  '/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -91,6 +99,7 @@ export interface FileRoutesByTo {
   '/roles': typeof AuthenticatedRolesRoute
   '/roster': typeof AuthenticatedRosterRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
+  '/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
   '/events': typeof AuthenticatedEventsIndexRoute
 }
 export interface FileRoutesById {
@@ -104,6 +113,7 @@ export interface FileRoutesById {
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/roster': typeof AuthenticatedRosterRoute
   '/_authenticated/events/$id': typeof AuthenticatedEventsIdRoute
+  '/_authenticated/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
 }
 export interface FileRouteTypes {
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/roles'
     | '/roster'
     | '/events/$id'
+    | '/receipts/$contributionId'
     | '/events/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/roles'
     | '/roster'
     | '/events/$id'
+    | '/receipts/$contributionId'
     | '/events'
   id:
     | '__root__'
@@ -140,6 +152,7 @@ export interface FileRouteTypes {
     | '/_authenticated/roles'
     | '/_authenticated/roster'
     | '/_authenticated/events/$id'
+    | '/_authenticated/receipts/$contributionId'
     | '/_authenticated/events/'
   fileRoutesById: FileRoutesById
 }
@@ -214,6 +227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/receipts/$contributionId': {
+      id: '/_authenticated/receipts/$contributionId'
+      path: '/receipts/$contributionId'
+      fullPath: '/receipts/$contributionId'
+      preLoaderRoute: typeof AuthenticatedReceiptsContributionIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/events/$id': {
       id: '/_authenticated/events/$id'
       path: '/events/$id'
@@ -231,6 +251,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
   AuthenticatedRosterRoute: typeof AuthenticatedRosterRoute
   AuthenticatedEventsIdRoute: typeof AuthenticatedEventsIdRoute
+  AuthenticatedReceiptsContributionIdRoute: typeof AuthenticatedReceiptsContributionIdRoute
   AuthenticatedEventsIndexRoute: typeof AuthenticatedEventsIndexRoute
 }
 
@@ -241,6 +262,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedRolesRoute: AuthenticatedRolesRoute,
   AuthenticatedRosterRoute: AuthenticatedRosterRoute,
   AuthenticatedEventsIdRoute: AuthenticatedEventsIdRoute,
+  AuthenticatedReceiptsContributionIdRoute:
+    AuthenticatedReceiptsContributionIdRoute,
   AuthenticatedEventsIndexRoute: AuthenticatedEventsIndexRoute,
 }
 
