@@ -273,23 +273,38 @@ function EventDetail() {
                     <TableCell>{c.contributor?.school ?? "—"}</TableCell>
                     <TableCell className="text-right">{formatKES(Number(c.amount))}</TableCell>
                     <TableCell className="max-w-xs truncate">{c.notes ?? ""}</TableCell>
-                    {isAdmin && (
+                    {isAdmin ? (
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={async () => {
-                            if (!confirm("Delete this contribution?")) return;
-                            const { error } = await supabase.from("contributions").delete().eq("id", c.id);
-                            if (error) toast.error(error.message);
-                            else {
-                              toast.success("Deleted");
-                              qc.invalidateQueries({ queryKey: ["contributions", id] });
-                              qc.invalidateQueries({ queryKey: ["event-totals"] });
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                        <div className="flex justify-end gap-1">
+                          <Button asChild variant="ghost" size="icon" title="View receipt">
+                            <Link to="/receipts/$contributionId" params={{ contributionId: c.id }} target="_blank">
+                              <Receipt className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={async () => {
+                              if (!confirm("Delete this contribution?")) return;
+                              const { error } = await supabase.from("contributions").delete().eq("id", c.id);
+                              if (error) toast.error(error.message);
+                              else {
+                                toast.success("Deleted");
+                                qc.invalidateQueries({ queryKey: ["contributions", id] });
+                                qc.invalidateQueries({ queryKey: ["event-totals"] });
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    ) : (
+                      <TableCell>
+                        <Button asChild variant="ghost" size="sm" title="View receipt">
+                          <Link to="/receipts/$contributionId" params={{ contributionId: c.id }} target="_blank">
+                            <Receipt className="mr-1 h-4 w-4" /> Receipt
+                          </Link>
                         </Button>
                       </TableCell>
                     )}
