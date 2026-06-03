@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/table";
 import { Upload, FileSpreadsheet, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
+
 
 export const Route = createFileRoute("/_authenticated/roster")({
   head: () => ({ meta: [{ title: "Teacher Roster — CZMT Welfare" }] }),
