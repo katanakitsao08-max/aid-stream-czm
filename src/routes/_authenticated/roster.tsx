@@ -189,14 +189,40 @@ function RosterPage() {
       return toast.error(e.message);
     }
     if (!parsed.length) return toast.error("No valid rows found");
+
+    // De-duplicate phones WITHIN the upload (keep first occurrence)
+    const seenPhones = new Set<string>();
+    const dupedInBatch: string[] = [];
+    const deduped = parsed.filter((r) => {
+      if (!r.phone) return true;
+      if (seenPhones.has(r.phone)) {
+        dupedInBatch.push(`${r.full_name} (${r.phone})`);
+        return false;
+      }
+      seenPhones.add(r.phone);
+      return true;
+    });
+
     setImporting(true);
-    const payload = parsed.map((r) => ({ ...r, created_by: profile?.id ?? null }));
-    const { error } = await supabase
+    const payload = deduped.map((r) => ({ ...r, created_by: profile?.id ?? null }));
+    const { data, error } = await supabase
       .from("staged_teachers")
-      .upsert(payload, { onConflict: "email", ignoreDuplicates: false });
+      .upsert(payload, { onConflict: "email", ignoreDuplicates: false })
+      .select("id");
     setImporting(false);
-    if (error) return toast.error(error.message);
-    toast.success(`Imported ${parsed.length} teacher${parsed.length === 1 ? "" : "s"}`);
+
+    if (error) {
+      // Most common cause: phone clashes with an already-uploaded teacher
+      if (/phone/i.test(error.message)) {
+        return toast.error("Some phone numbers already exist in the roster. Remove duplicates and try again.");
+      }
+      return toast.error(error.message);
+    }
+
+    const inserted = data?.length ?? deduped.length;
+    let msg = `Imported ${inserted} teacher${inserted === 1 ? "" : "s"}`;
+    if (dupedInBatch.length) msg += ` — skipped ${dupedInBatch.length} duplicate phone${dupedInBatch.length === 1 ? "" : "s"}`;
+    toast.success(msg);
     setCsv("");
     if (fileRef.current) fileRef.current.value = "";
     qc.invalidateQueries({ queryKey: ["staged-teachers"] });
