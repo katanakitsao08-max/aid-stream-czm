@@ -108,6 +108,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          membership_number: string | null
           phone: string | null
           school: string | null
           staff_number: string | null
@@ -119,6 +120,7 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          membership_number?: string | null
           phone?: string | null
           school?: string | null
           staff_number?: string | null
@@ -130,6 +132,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          membership_number?: string | null
           phone?: string | null
           school?: string | null
           staff_number?: string | null
@@ -141,39 +144,66 @@ export type Database = {
       }
       staged_teachers: {
         Row: {
+          children: string | null
           claimed_at: string | null
           claimed_by: string | null
           created_at: string
           created_by: string | null
           email: string
+          form_timestamp: string | null
           full_name: string
+          home_county: string | null
           id: string
+          membership_number: string | null
+          next_of_kin: string | null
+          next_of_kin_contact: string | null
+          parents: string | null
           phone: string | null
           school: string | null
+          signature: string | null
+          spouse_name: string | null
           staff_number: string | null
         }
         Insert: {
+          children?: string | null
           claimed_at?: string | null
           claimed_by?: string | null
           created_at?: string
           created_by?: string | null
           email: string
+          form_timestamp?: string | null
           full_name: string
+          home_county?: string | null
           id?: string
+          membership_number?: string | null
+          next_of_kin?: string | null
+          next_of_kin_contact?: string | null
+          parents?: string | null
           phone?: string | null
           school?: string | null
+          signature?: string | null
+          spouse_name?: string | null
           staff_number?: string | null
         }
         Update: {
+          children?: string | null
           claimed_at?: string | null
           claimed_by?: string | null
           created_at?: string
           created_by?: string | null
           email?: string
+          form_timestamp?: string | null
           full_name?: string
+          home_county?: string | null
           id?: string
+          membership_number?: string | null
+          next_of_kin?: string | null
+          next_of_kin_contact?: string | null
+          parents?: string | null
           phone?: string | null
           school?: string | null
+          signature?: string | null
+          spouse_name?: string | null
           staff_number?: string | null
         }
         Relationships: [
@@ -269,6 +299,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_membership_number: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "member" | "committee"
