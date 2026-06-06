@@ -293,11 +293,11 @@ function RosterPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Member #</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Staff No.</TableHead>
-                  <TableHead>School</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>School</TableHead>
+                  <TableHead>Next of Kin</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
@@ -305,11 +305,13 @@ function RosterPage() {
               <TableBody>
                 {rows.map((r) => (
                   <TableRow key={r.id}>
+                    <TableCell className="font-mono text-xs">{r.membership_number ?? "—"}</TableCell>
                     <TableCell className="font-medium">{r.full_name}</TableCell>
-                    <TableCell className="text-muted-foreground">{r.email}</TableCell>
-                    <TableCell>{r.staff_number ?? "—"}</TableCell>
-                    <TableCell>{r.school ?? "—"}</TableCell>
                     <TableCell>{r.phone ?? "—"}</TableCell>
+                    <TableCell>{r.school ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {r.next_of_kin ? `${r.next_of_kin}${r.next_of_kin_contact ? ` · ${r.next_of_kin_contact}` : ""}` : "—"}
+                    </TableCell>
                     <TableCell>
                       {r.claimed_by ? (
                         <Badge variant="default">Claimed</Badge>
