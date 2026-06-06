@@ -20,9 +20,8 @@ export const Route = createFileRoute("/_authenticated/roster")({
   component: RosterPage,
 });
 
-const TEMPLATE = `full_name,email,staff_number,school,phone
-Jane Mwende,jane@example.com,TSC12345,Malindi Primary,0712345678
-John Karisa,john@example.com,TSC67890,Ganda Primary,0798765432`;
+const TEMPLATE = `full_name,email,staff_number,school,phone,spouse_name,children,parents,next_of_kin,next_of_kin_contact,home_county,signature
+Jane Mwende,jane@example.com,TSC12345,Malindi Primary,0712345678,John Mwende,Ann; Brian,Paul & Mary,Peter Mwende,0722000000,Kilifi,Jane Mwende`;
 
 type StagedRow = {
   full_name: string;
@@ -30,50 +29,84 @@ type StagedRow = {
   staff_number?: string | null;
   school?: string | null;
   phone?: string | null;
+  spouse_name?: string | null;
+  children?: string | null;
+  parents?: string | null;
+  next_of_kin?: string | null;
+  next_of_kin_contact?: string | null;
+  home_county?: string | null;
+  signature?: string | null;
 };
+
+const HEADER_ALIASES: Record<keyof StagedRow, string[]> = {
+  full_name: ["full_name", "fullname", "name", "full name", "teacher name", "teacher", "teacher's name", "teachers name"],
+  email: ["email", "email address", "e-mail", "mail"],
+  staff_number: ["staff_number", "staff no", "staff number", "staff", "tsc", "tsc number", "tsc no"],
+  school: ["school", "school name", "station"],
+  phone: ["phone", "phone number", "mobile", "tel", "telephone", "msisdn", "contact", "contacts"],
+  spouse_name: ["spouse_name", "spouse", "name of spouse"],
+  children: ["children", "names of children", "name of children"],
+  parents: ["parents", "names of biological parents", "biological parents", "name of parents"],
+  next_of_kin: ["next_of_kin", "next of kin", "name next of kin", "name of next of kin"],
+  next_of_kin_contact: ["next_of_kin_contact", "next of kin contact", "kin contact", "next of kin phone"],
+  home_county: ["home_county", "home county", "county"],
+  signature: ["signature", "signed"],
+};
+
+function normalizeHeader(h: string): keyof StagedRow | null {
+  const key = String(h ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+  // strip parenthetical hints like "(Input all the your children here)"
+  const clean = key.replace(/\(.*?\)/g, "").trim();
+  for (const field of Object.keys(HEADER_ALIASES) as (keyof StagedRow)[]) {
+    if (HEADER_ALIASES[field].some((a) => a === key || a === clean)) return field;
+  }
+  for (const field of Object.keys(HEADER_ALIASES) as (keyof StagedRow)[]) {
+    if (HEADER_ALIASES[field].some((a) => a.length > 3 && clean.includes(a))) return field;
+  }
+  return null;
+}
+
+function normPhone(v?: string | null): string | null {
+  if (!v) return null;
+  const digits = String(v).replace(/\D/g, "");
+  if (!digits) return null;
+  if (digits.startsWith("254")) return "0" + digits.slice(3);
+  if (digits.startsWith("0")) return digits;
+  if (digits.length === 9) return "0" + digits;
+  return digits;
+}
+
+function rowFromRecord(rec: Record<string, unknown>): StagedRow | null {
+  const out: Partial<StagedRow> = {};
+  for (const [k, v] of Object.entries(rec)) {
+    const field = normalizeHeader(k);
+    if (!field) continue;
+    const val = String(v ?? "").trim();
+    if (!val) continue;
+    if (field === "email") out.email = val.toLowerCase();
+    else if (field === "phone" || field === "next_of_kin_contact") (out as any)[field] = normPhone(val);
+    else (out as any)[field] = val;
+  }
+  if (!out.full_name) return null;
+  if (!out.email) {
+    // Synthesize a placeholder email so the row can be staged (Google Forms often omit email)
+    const slug = out.full_name.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.|\.$/g, "");
+    const tail = (out.phone ?? "noPhone").slice(-4);
+    out.email = `${slug}.${tail}@roster.local`;
+  }
+  return out as StagedRow;
+}
 
 function parseCSV(text: string): StagedRow[] {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) return [];
-  const header = lines[0].split(",").map((h) => h.trim().toLowerCase());
-  const idx = (k: string) => header.indexOf(k);
-  const i = {
-    name: idx("full_name"),
-    email: idx("email"),
-    staff: idx("staff_number"),
-    school: idx("school"),
-    phone: idx("phone"),
-  };
-  if (i.name < 0 || i.email < 0) {
-    throw new Error("CSV must include 'full_name' and 'email' columns");
-  }
+  const header = lines[0].split(",").map((h) => h.trim());
   return lines.slice(1).map((line) => {
-    // simple split — assume no commas in fields. Good enough for school admin use.
     const parts = line.split(",").map((p) => p.trim().replace(/^"|"$/g, ""));
-    return {
-      full_name: parts[i.name] ?? "",
-      email: (parts[i.email] ?? "").toLowerCase(),
-      staff_number: i.staff >= 0 ? parts[i.staff] || null : null,
-      school: i.school >= 0 ? parts[i.school] || null : null,
-      phone: i.phone >= 0 ? parts[i.phone] || null : null,
-    };
-  }).filter((r) => r.full_name && r.email);
-}
-
-const HEADER_ALIASES: Record<keyof StagedRow, string[]> = {
-  full_name: ["full_name", "fullname", "name", "full name", "teacher name", "teacher"],
-  email: ["email", "email address", "e-mail", "mail"],
-  staff_number: ["staff_number", "staff no", "staff number", "staff", "tsc", "tsc number", "tsc no"],
-  school: ["school", "school name", "station"],
-  phone: ["phone", "phone number", "mobile", "tel", "telephone", "msisdn"],
-};
-
-function normalizeHeader(h: string): keyof StagedRow | null {
-  const key = String(h ?? "").trim().toLowerCase();
-  for (const field of Object.keys(HEADER_ALIASES) as (keyof StagedRow)[]) {
-    if (HEADER_ALIASES[field].includes(key)) return field;
-  }
-  return null;
+    const rec: Record<string, string> = {};
+    header.forEach((h, i) => (rec[h] = parts[i] ?? ""));
+    return rowFromRecord(rec);
+  }).filter((r): r is StagedRow => !!r);
 }
 
 function parseExcel(buffer: ArrayBuffer): StagedRow[] {
@@ -81,27 +114,17 @@ function parseExcel(buffer: ArrayBuffer): StagedRow[] {
   const sheet = wb.Sheets[wb.SheetNames[0]];
   if (!sheet) return [];
   const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
-  return json
-    .map((row) => {
-      const out: Partial<StagedRow> = {};
-      for (const [k, v] of Object.entries(row)) {
-        const field = normalizeHeader(k);
-        if (!field) continue;
-        const val = String(v ?? "").trim();
-        if (field === "email") out.email = val.toLowerCase();
-        else (out as any)[field] = val || null;
-      }
-      return out;
-    })
-    .filter((r): r is StagedRow => !!r.full_name && !!r.email);
+  return json.map(rowFromRecord).filter((r): r is StagedRow => !!r);
 }
 
 function rowsToCSV(rows: StagedRow[]): string {
-  const header = "full_name,email,staff_number,school,phone";
+  const cols: (keyof StagedRow)[] = [
+    "full_name","email","staff_number","school","phone",
+    "spouse_name","children","parents","next_of_kin","next_of_kin_contact","home_county","signature",
+  ];
+  const header = cols.join(",");
   const body = rows.map((r) =>
-    [r.full_name, r.email, r.staff_number ?? "", r.school ?? "", r.phone ?? ""]
-      .map((v) => String(v).replace(/,/g, " "))
-      .join(","),
+    cols.map((c) => String((r as any)[c] ?? "").replace(/,/g, " ")).join(","),
   );
   return [header, ...body].join("\n");
 }
@@ -166,14 +189,40 @@ function RosterPage() {
       return toast.error(e.message);
     }
     if (!parsed.length) return toast.error("No valid rows found");
+
+    // De-duplicate phones WITHIN the upload (keep first occurrence)
+    const seenPhones = new Set<string>();
+    const dupedInBatch: string[] = [];
+    const deduped = parsed.filter((r) => {
+      if (!r.phone) return true;
+      if (seenPhones.has(r.phone)) {
+        dupedInBatch.push(`${r.full_name} (${r.phone})`);
+        return false;
+      }
+      seenPhones.add(r.phone);
+      return true;
+    });
+
     setImporting(true);
-    const payload = parsed.map((r) => ({ ...r, created_by: profile?.id ?? null }));
-    const { error } = await supabase
+    const payload = deduped.map((r) => ({ ...r, created_by: profile?.id ?? null }));
+    const { data, error } = await supabase
       .from("staged_teachers")
-      .upsert(payload, { onConflict: "email", ignoreDuplicates: false });
+      .upsert(payload, { onConflict: "email", ignoreDuplicates: false })
+      .select("id");
     setImporting(false);
-    if (error) return toast.error(error.message);
-    toast.success(`Imported ${parsed.length} teacher${parsed.length === 1 ? "" : "s"}`);
+
+    if (error) {
+      // Most common cause: phone clashes with an already-uploaded teacher
+      if (/phone/i.test(error.message)) {
+        return toast.error("Some phone numbers already exist in the roster. Remove duplicates and try again.");
+      }
+      return toast.error(error.message);
+    }
+
+    const inserted = data?.length ?? deduped.length;
+    let msg = `Imported ${inserted} teacher${inserted === 1 ? "" : "s"}`;
+    if (dupedInBatch.length) msg += ` — skipped ${dupedInBatch.length} duplicate phone${dupedInBatch.length === 1 ? "" : "s"}`;
+    toast.success(msg);
     setCsv("");
     if (fileRef.current) fileRef.current.value = "";
     qc.invalidateQueries({ queryKey: ["staged-teachers"] });
@@ -217,7 +266,7 @@ function RosterPage() {
               Load template
             </Button>
             <span className="text-xs text-muted-foreground">
-              Required columns: <code>full_name</code> (or Name), <code>email</code>. Optional: <code>staff_number</code> (TSC), <code>school</code>, <code>phone</code>.
+              Accepts your Google Form export. Headers like <code>Teacher's Name</code>, <code>Contact</code>, <code>School</code>, <code>Name of Spouse</code>, <code>Names of Children</code>, <code>Next of Kin</code>, etc. are auto-mapped. Each teacher gets an auto-allocated membership number. Duplicate phone numbers are blocked.
             </span>
           </div>
 
@@ -244,11 +293,11 @@ function RosterPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Member #</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Staff No.</TableHead>
-                  <TableHead>School</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>School</TableHead>
+                  <TableHead>Next of Kin</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
@@ -256,11 +305,13 @@ function RosterPage() {
               <TableBody>
                 {rows.map((r) => (
                   <TableRow key={r.id}>
+                    <TableCell className="font-mono text-xs">{r.membership_number ?? "—"}</TableCell>
                     <TableCell className="font-medium">{r.full_name}</TableCell>
-                    <TableCell className="text-muted-foreground">{r.email}</TableCell>
-                    <TableCell>{r.staff_number ?? "—"}</TableCell>
-                    <TableCell>{r.school ?? "—"}</TableCell>
                     <TableCell>{r.phone ?? "—"}</TableCell>
+                    <TableCell>{r.school ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {r.next_of_kin ? `${r.next_of_kin}${r.next_of_kin_contact ? ` · ${r.next_of_kin_contact}` : ""}` : "—"}
+                    </TableCell>
                     <TableCell>
                       {r.claimed_by ? (
                         <Badge variant="default">Claimed</Badge>
