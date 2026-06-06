@@ -266,7 +266,7 @@ function RosterPage() {
               Load template
             </Button>
             <span className="text-xs text-muted-foreground">
-              Required columns: <code>full_name</code> (or Name), <code>email</code>. Optional: <code>staff_number</code> (TSC), <code>school</code>, <code>phone</code>.
+              Accepts your Google Form export. Headers like <code>Teacher's Name</code>, <code>Contact</code>, <code>School</code>, <code>Name of Spouse</code>, <code>Names of Children</code>, <code>Next of Kin</code>, etc. are auto-mapped. Each teacher gets an auto-allocated membership number. Duplicate phone numbers are blocked.
             </span>
           </div>
 
