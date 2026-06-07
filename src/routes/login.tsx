@@ -79,14 +79,21 @@ function SignInForm() {
     const norm = normalizePhone(phone);
     if (!norm) return toast.error("Enter a valid phone number, e.g. 0712 345 678");
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: phoneToEmail(norm),
-      password,
-    });
+    // Resolve the phone to whatever email is actually on file (handles older
+    // admin accounts created with a real email, as well as new phone signups).
+    let email = phoneToEmail(norm);
+    try {
+      const res = await resolveEmailForPhone({ data: { phone: norm } });
+      if (res?.email) email = res.email;
+    } catch {
+      /* fall back to synthesized email */
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) toast.error("Invalid phone or password");
     else toast.success("Signed in");
   };
+
 
   return (
     <form onSubmit={onSubmit} className="mt-4 space-y-4">
