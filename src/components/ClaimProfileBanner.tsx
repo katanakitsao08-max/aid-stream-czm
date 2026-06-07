@@ -11,13 +11,31 @@ export function ClaimProfileBanner() {
   const qc = useQueryClient();
 
   const { data: match } = useQuery({
-    queryKey: ["staged-match", user?.email],
-    enabled: !!user?.email && !!profile,
+    queryKey: ["staged-match", user?.email, profile?.phone],
+    enabled: !!profile,
     queryFn: async () => {
+      const phone = profile?.phone ?? null;
+      const email = user?.email ?? null;
+      const phoneVariants: string[] = [];
+      if (phone) {
+        const digits = phone.replace(/\D/g, "");
+        if (digits.startsWith("254") && digits.length === 12) {
+          phoneVariants.push(digits, "0" + digits.slice(3));
+        } else if (digits.startsWith("0") && digits.length === 10) {
+          phoneVariants.push(digits, "254" + digits.slice(1));
+        } else if (digits) {
+          phoneVariants.push(digits);
+        }
+      }
+      const orParts: string[] = [];
+      if (email && !email.endsWith("@czmt.local")) orParts.push(`email.ilike.${email}`);
+      for (const p of phoneVariants) orParts.push(`phone.eq.${p}`);
+      if (orParts.length === 0) return null;
+
       const { data } = await supabase
         .from("staged_teachers")
         .select("*")
-        .ilike("email", user!.email!)
+        .or(orParts.join(","))
         .is("claimed_by", null)
         .maybeSingle();
       return data;
