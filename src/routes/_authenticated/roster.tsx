@@ -190,16 +190,24 @@ function RosterPage() {
     }
     if (!parsed.length) return toast.error("No valid rows found");
 
-    // De-duplicate phones WITHIN the upload (keep first occurrence)
+    // De-duplicate phones AND emails WITHIN the upload (keep first occurrence).
+    // Duplicate emails in a single upsert trigger Postgres
+    // "ON CONFLICT DO UPDATE command cannot affect row a second time".
     const seenPhones = new Set<string>();
+    const seenEmails = new Set<string>();
     const dupedInBatch: string[] = [];
     const deduped = parsed.filter((r) => {
-      if (!r.phone) return true;
-      if (seenPhones.has(r.phone)) {
+      const emailKey = r.email?.toLowerCase();
+      if (emailKey && seenEmails.has(emailKey)) {
+        dupedInBatch.push(`${r.full_name} (${emailKey})`);
+        return false;
+      }
+      if (r.phone && seenPhones.has(r.phone)) {
         dupedInBatch.push(`${r.full_name} (${r.phone})`);
         return false;
       }
-      seenPhones.add(r.phone);
+      if (emailKey) seenEmails.add(emailKey);
+      if (r.phone) seenPhones.add(r.phone);
       return true;
     });
 
