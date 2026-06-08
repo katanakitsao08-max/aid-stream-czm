@@ -168,7 +168,7 @@ function EventDetail() {
             </div>
             {target > 0 && <Progress value={pct} />}
             <p className="mt-2 text-xs text-muted-foreground">
-              {contributions.length} contribution{contributions.length === 1 ? "" : "s"} recorded
+              {contributorCount} contributor{contributorCount === 1 ? "" : "s"} · {isAdmin ? `${contributions.length} entries` : "your contributions shown below"}
             </p>
           </div>
         </CardContent>
