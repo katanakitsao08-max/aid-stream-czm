@@ -12,32 +12,36 @@ const InputSchema = z.object({
  *  - older accounts (e.g. admins) created with a real email but whose profile
  *    stores the phone number.
  *
- * Returns `{ email: null }` when no match — the client should show a generic
- * "invalid phone or password" message to avoid leaking which phones exist.
+ * When multiple profiles share the same phone (e.g. an admin originally
+ * created with a real email, plus a later phone-only signup that duplicated
+ * the number), prefer the account with a real email address over the
+ * synthesized `@czmt.local` one.
  */
 export const resolveEmailForPhone = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // 1. Synthesized email used by the phone-only signup flow.
     const synthetic = `${data.phone}@czmt.local`;
     const local = data.phone.startsWith("254") ? "0" + data.phone.slice(3) : data.phone;
 
-    // 2. Look up a profile that matches either the canonical 2547... form or
-    //    the local 07... form (older rows may use either).
-    const { data: profile } = await supabaseAdmin
+    const { data: profiles } = await supabaseAdmin
       .from("profiles")
       .select("user_id")
-      .or(`phone.eq.${data.phone},phone.eq.${local}`)
-      .maybeSingle();
+      .or(`phone.eq.${data.phone},phone.eq.${local}`);
 
-    if (profile?.user_id) {
-      const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(profile.user_id);
-      const email = userRes?.user?.email ?? null;
-      if (email) return { email };
+    const emails: string[] = [];
+    for (const p of profiles ?? []) {
+      if (!p.user_id) continue;
+      const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(p.user_id);
+      const email = userRes?.user?.email;
+      if (email) emails.push(email);
     }
 
-    // 3. Fall back to the synthesized address.
+    // Prefer a real email over the synthesized @czmt.local one.
+    const real = emails.find((e) => !e.endsWith("@czmt.local"));
+    if (real) return { email: real };
+    if (emails[0]) return { email: emails[0] };
+
     return { email: synthetic };
   });
