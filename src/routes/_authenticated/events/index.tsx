@@ -88,7 +88,9 @@ function EventsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {events.map((e: any) => {
-            const collected = totals[e.id] ?? 0;
+            const t = totals[e.id];
+            const collected = t?.collected ?? 0;
+            const contributors = t?.contributors ?? 0;
             const target = Number(e.target_amount ?? 0);
             const pct = target > 0 ? Math.min(100, Math.round((collected / target) * 100)) : 0;
             const funded = target > 0 && collected >= target;
@@ -117,9 +119,12 @@ function EventsPage() {
                         {target > 0 && <span className="text-muted-foreground">of {formatKES(target)}</span>}
                       </div>
                       {target > 0 && <Progress value={pct} />}
+                      <p className="text-xs text-muted-foreground">
+                        {contributors} contributor{contributors === 1 ? "" : "s"}
+                      </p>
                     </div>
                     <div className="flex items-center justify-end text-sm text-accent">
-                      View contributions <ChevronRight className="h-4 w-4" />
+                      View details <ChevronRight className="h-4 w-4" />
                     </div>
                   </CardContent>
                 </Card>
