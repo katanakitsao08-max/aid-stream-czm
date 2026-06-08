@@ -44,14 +44,20 @@ function EventsPage() {
   const { data: totals = {} } = useQuery({
     queryKey: ["event-totals"],
     queryFn: async () => {
-      const { data } = await supabase.from("contributions").select("event_id, amount");
-      const t: Record<string, number> = {};
-      (data ?? []).forEach((c) => {
-        t[c.event_id] = (t[c.event_id] ?? 0) + Number(c.amount);
+      // Aggregate via SECURITY DEFINER fn so every member sees live progress
+      // even though individual contribution rows are private.
+      const { data } = await supabase.rpc("event_totals");
+      const t: Record<string, { collected: number; contributors: number }> = {};
+      (data ?? []).forEach((c: any) => {
+        t[c.event_id] = {
+          collected: Number(c.collected ?? 0),
+          contributors: Number(c.contributor_count ?? 0),
+        };
       });
       return t;
     },
   });
+
 
   return (
     <div className="space-y-6">
