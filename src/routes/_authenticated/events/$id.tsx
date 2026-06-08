@@ -63,13 +63,27 @@ function EventDetail() {
     },
   });
 
+  // Live aggregate visible to every member (does not leak individual rows).
+  const { data: liveTotal } = useQuery({
+    queryKey: ["event-total", id],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("event_totals", { event_ids: [id] });
+      const row = (data ?? [])[0];
+      return {
+        collected: Number(row?.collected ?? 0),
+        contributors: Number(row?.contributor_count ?? 0),
+      };
+    },
+  });
+
   if (!event) {
     return <p className="text-muted-foreground">Loading event…</p>;
   }
 
   const confirmedContribs = contributions.filter((c: any) => c.status !== "pending");
   const pendingContribs = contributions.filter((c: any) => c.status === "pending");
-  const collected = confirmedContribs.reduce((s: number, c: any) => s + Number(c.amount), 0);
+  const collected = liveTotal?.collected ?? confirmedContribs.reduce((s: number, c: any) => s + Number(c.amount), 0);
+  const contributorCount = liveTotal?.contributors ?? 0;
   const target = Number(event.target_amount ?? 0);
   const pct = target > 0 ? Math.min(100, Math.round((collected / target) * 100)) : 0;
   const funded = target > 0 && collected >= target;
@@ -154,7 +168,7 @@ function EventDetail() {
             </div>
             {target > 0 && <Progress value={pct} />}
             <p className="mt-2 text-xs text-muted-foreground">
-              {contributions.length} contribution{contributions.length === 1 ? "" : "s"} recorded
+              {contributorCount} contributor{contributorCount === 1 ? "" : "s"} · {isAdmin ? `${contributions.length} entries` : "your contributions shown below"}
             </p>
           </div>
         </CardContent>

@@ -292,6 +292,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      event_totals: {
+        Args: { event_ids?: string[] }
+        Returns: {
+          collected: number
+          contributor_count: number
+          event_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -44,14 +44,20 @@ function EventsPage() {
   const { data: totals = {} } = useQuery({
     queryKey: ["event-totals"],
     queryFn: async () => {
-      const { data } = await supabase.from("contributions").select("event_id, amount");
-      const t: Record<string, number> = {};
-      (data ?? []).forEach((c) => {
-        t[c.event_id] = (t[c.event_id] ?? 0) + Number(c.amount);
+      // Aggregate via SECURITY DEFINER fn so every member sees live progress
+      // even though individual contribution rows are private.
+      const { data } = await supabase.rpc("event_totals");
+      const t: Record<string, { collected: number; contributors: number }> = {};
+      (data ?? []).forEach((c: any) => {
+        t[c.event_id] = {
+          collected: Number(c.collected ?? 0),
+          contributors: Number(c.contributor_count ?? 0),
+        };
       });
       return t;
     },
   });
+
 
   return (
     <div className="space-y-6">
@@ -82,7 +88,9 @@ function EventsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {events.map((e: any) => {
-            const collected = totals[e.id] ?? 0;
+            const t = totals[e.id];
+            const collected = t?.collected ?? 0;
+            const contributors = t?.contributors ?? 0;
             const target = Number(e.target_amount ?? 0);
             const pct = target > 0 ? Math.min(100, Math.round((collected / target) * 100)) : 0;
             const funded = target > 0 && collected >= target;
@@ -111,9 +119,12 @@ function EventsPage() {
                         {target > 0 && <span className="text-muted-foreground">of {formatKES(target)}</span>}
                       </div>
                       {target > 0 && <Progress value={pct} />}
+                      <p className="text-xs text-muted-foreground">
+                        {contributors} contributor{contributors === 1 ? "" : "s"}
+                      </p>
                     </div>
                     <div className="flex items-center justify-end text-sm text-accent">
-                      View contributions <ChevronRight className="h-4 w-4" />
+                      View details <ChevronRight className="h-4 w-4" />
                     </div>
                   </CardContent>
                 </Card>
