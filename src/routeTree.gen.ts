@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminRecoveryRouteImport } from './routes/admin-recovery'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRosterRouteImport } from './routes/_authenticated/roster'
@@ -18,12 +19,18 @@ import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDependantsRouteImport } from './routes/_authenticated/dependants'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events/index'
+import { Route as ApiPublicAdminRecoveryRouteImport } from './routes/api/public/admin-recovery'
 import { Route as AuthenticatedReceiptsContributionIdRouteImport } from './routes/_authenticated/receipts/$contributionId'
 import { Route as AuthenticatedEventsIdRouteImport } from './routes/_authenticated/events/$id'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRecoveryRoute = AdminRecoveryRouteImport.update({
+  id: '/admin-recovery',
+  path: '/admin-recovery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -66,6 +73,11 @@ const AuthenticatedEventsIndexRoute =
     path: '/events/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiPublicAdminRecoveryRoute = ApiPublicAdminRecoveryRouteImport.update({
+  id: '/api/public/admin-recovery',
+  path: '/api/public/admin-recovery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedReceiptsContributionIdRoute =
   AuthenticatedReceiptsContributionIdRouteImport.update({
     id: '/receipts/$contributionId',
@@ -80,6 +92,7 @@ const AuthenticatedEventsIdRoute = AuthenticatedEventsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin-recovery': typeof AdminRecoveryRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dependants': typeof AuthenticatedDependantsRoute
@@ -88,10 +101,12 @@ export interface FileRoutesByFullPath {
   '/roster': typeof AuthenticatedRosterRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
   '/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
+  '/api/public/admin-recovery': typeof ApiPublicAdminRecoveryRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin-recovery': typeof AdminRecoveryRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dependants': typeof AuthenticatedDependantsRoute
@@ -100,12 +115,14 @@ export interface FileRoutesByTo {
   '/roster': typeof AuthenticatedRosterRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
   '/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
+  '/api/public/admin-recovery': typeof ApiPublicAdminRecoveryRoute
   '/events': typeof AuthenticatedEventsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/admin-recovery': typeof AdminRecoveryRoute
   '/login': typeof LoginRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dependants': typeof AuthenticatedDependantsRoute
@@ -114,12 +131,14 @@ export interface FileRoutesById {
   '/_authenticated/roster': typeof AuthenticatedRosterRoute
   '/_authenticated/events/$id': typeof AuthenticatedEventsIdRoute
   '/_authenticated/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
+  '/api/public/admin-recovery': typeof ApiPublicAdminRecoveryRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin-recovery'
     | '/login'
     | '/dashboard'
     | '/dependants'
@@ -128,10 +147,12 @@ export interface FileRouteTypes {
     | '/roster'
     | '/events/$id'
     | '/receipts/$contributionId'
+    | '/api/public/admin-recovery'
     | '/events/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin-recovery'
     | '/login'
     | '/dashboard'
     | '/dependants'
@@ -140,11 +161,13 @@ export interface FileRouteTypes {
     | '/roster'
     | '/events/$id'
     | '/receipts/$contributionId'
+    | '/api/public/admin-recovery'
     | '/events'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/admin-recovery'
     | '/login'
     | '/_authenticated/dashboard'
     | '/_authenticated/dependants'
@@ -153,13 +176,16 @@ export interface FileRouteTypes {
     | '/_authenticated/roster'
     | '/_authenticated/events/$id'
     | '/_authenticated/receipts/$contributionId'
+    | '/api/public/admin-recovery'
     | '/_authenticated/events/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AdminRecoveryRoute: typeof AdminRecoveryRoute
   LoginRoute: typeof LoginRoute
+  ApiPublicAdminRecoveryRoute: typeof ApiPublicAdminRecoveryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -169,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-recovery': {
+      id: '/admin-recovery'
+      path: '/admin-recovery'
+      fullPath: '/admin-recovery'
+      preLoaderRoute: typeof AdminRecoveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -227,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/admin-recovery': {
+      id: '/api/public/admin-recovery'
+      path: '/api/public/admin-recovery'
+      fullPath: '/api/public/admin-recovery'
+      preLoaderRoute: typeof ApiPublicAdminRecoveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/receipts/$contributionId': {
       id: '/_authenticated/receipts/$contributionId'
       path: '/receipts/$contributionId'
@@ -274,18 +314,10 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AdminRecoveryRoute: AdminRecoveryRoute,
   LoginRoute: LoginRoute,
+  ApiPublicAdminRecoveryRoute: ApiPublicAdminRecoveryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
