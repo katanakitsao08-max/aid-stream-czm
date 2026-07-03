@@ -76,7 +76,7 @@ function AuthLayout() {
           <span className="font-semibold tracking-tight">CZMT Welfare</span>
         </div>
         <nav className="flex flex-col gap-1 p-3">
-          {[...nav, ...(isAdmin ? adminNav : [])].map((n) => {
+          {[...nav, ...(isReviewer ? reviewerNav : []), ...(isAdmin ? adminNav : [])].map((n) => {
             const active = location.pathname.startsWith(n.to);
             return (
               <Link
@@ -100,7 +100,7 @@ function AuthLayout() {
           <div className="mb-2 px-1">
             <p className="truncate text-sm font-medium">{profile?.full_name ?? user.email}</p>
             <p className="truncate text-xs text-sidebar-foreground/60">
-              {isAdmin ? "Admin" : "Member"} · {profile?.school ?? "—"}
+              {isAdmin ? "Admin" : isTreasurer ? "Treasurer" : "Member"} · {profile?.school ?? "—"}
             </p>
           </div>
           <Button
