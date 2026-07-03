@@ -310,10 +310,22 @@ export type Database = {
       next_membership_number: { Args: never; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "member" | "committee"
-      contribution_status: "pending" | "confirmed"
-      event_status: "open" | "closed"
-      event_type: "bereavement" | "emergency" | "other"
+      app_role: "admin" | "member" | "committee" | "treasurer"
+      contribution_status:
+        | "pending"
+        | "confirmed"
+        | "approved"
+        | "rejected"
+        | "verification_requested"
+      event_status: "open" | "closed" | "draft" | "active" | "completed"
+      event_type:
+        | "bereavement"
+        | "emergency"
+        | "other"
+        | "hospital"
+        | "school"
+        | "retirement"
+        | "disaster"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -441,10 +453,24 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "member", "committee"],
-      contribution_status: ["pending", "confirmed"],
-      event_status: ["open", "closed"],
-      event_type: ["bereavement", "emergency", "other"],
+      app_role: ["admin", "member", "committee", "treasurer"],
+      contribution_status: [
+        "pending",
+        "confirmed",
+        "approved",
+        "rejected",
+        "verification_requested",
+      ],
+      event_status: ["open", "closed", "draft", "active", "completed"],
+      event_type: [
+        "bereavement",
+        "emergency",
+        "other",
+        "hospital",
+        "school",
+        "retirement",
+        "disaster",
+      ],
     },
   },
 } as const
