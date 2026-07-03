@@ -15,9 +15,12 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRosterRouteImport } from './routes/_authenticated/roster'
 import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedPayoutsRouteImport } from './routes/_authenticated/payouts'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedDependantsRouteImport } from './routes/_authenticated/dependants'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events/index'
 import { Route as ApiPublicAdminRecoveryRouteImport } from './routes/api/public/admin-recovery'
 import { Route as AuthenticatedReceiptsContributionIdRouteImport } from './routes/_authenticated/receipts/$contributionId'
@@ -52,6 +55,16 @@ const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPayoutsRoute = AuthenticatedPayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
   id: '/members',
   path: '/members',
@@ -65,6 +78,11 @@ const AuthenticatedDependantsRoute = AuthenticatedDependantsRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedEventsIndexRoute =
@@ -94,9 +112,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-recovery': typeof AdminRecoveryRoute
   '/login': typeof LoginRoute
+  '/approvals': typeof AuthenticatedApprovalsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dependants': typeof AuthenticatedDependantsRoute
   '/members': typeof AuthenticatedMembersRoute
+  '/payouts': typeof AuthenticatedPayoutsRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/roster': typeof AuthenticatedRosterRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
@@ -108,9 +129,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-recovery': typeof AdminRecoveryRoute
   '/login': typeof LoginRoute
+  '/approvals': typeof AuthenticatedApprovalsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dependants': typeof AuthenticatedDependantsRoute
   '/members': typeof AuthenticatedMembersRoute
+  '/payouts': typeof AuthenticatedPayoutsRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/roster': typeof AuthenticatedRosterRoute
   '/events/$id': typeof AuthenticatedEventsIdRoute
@@ -124,9 +148,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/admin-recovery': typeof AdminRecoveryRoute
   '/login': typeof LoginRoute
+  '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dependants': typeof AuthenticatedDependantsRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
+  '/_authenticated/payouts': typeof AuthenticatedPayoutsRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/roster': typeof AuthenticatedRosterRoute
   '/_authenticated/events/$id': typeof AuthenticatedEventsIdRoute
@@ -140,9 +167,12 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-recovery'
     | '/login'
+    | '/approvals'
     | '/dashboard'
     | '/dependants'
     | '/members'
+    | '/payouts'
+    | '/reports'
     | '/roles'
     | '/roster'
     | '/events/$id'
@@ -154,9 +184,12 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-recovery'
     | '/login'
+    | '/approvals'
     | '/dashboard'
     | '/dependants'
     | '/members'
+    | '/payouts'
+    | '/reports'
     | '/roles'
     | '/roster'
     | '/events/$id'
@@ -169,9 +202,12 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/admin-recovery'
     | '/login'
+    | '/_authenticated/approvals'
     | '/_authenticated/dashboard'
     | '/_authenticated/dependants'
     | '/_authenticated/members'
+    | '/_authenticated/payouts'
+    | '/_authenticated/reports'
     | '/_authenticated/roles'
     | '/_authenticated/roster'
     | '/_authenticated/events/$id'
@@ -232,6 +268,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRolesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/payouts': {
+      id: '/_authenticated/payouts'
+      path: '/payouts'
+      fullPath: '/payouts'
+      preLoaderRoute: typeof AuthenticatedPayoutsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/members': {
       id: '/_authenticated/members'
       path: '/members'
@@ -251,6 +301,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/approvals': {
+      id: '/_authenticated/approvals'
+      path: '/approvals'
+      fullPath: '/approvals'
+      preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/events/': {
@@ -285,9 +342,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDependantsRoute: typeof AuthenticatedDependantsRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
+  AuthenticatedPayoutsRoute: typeof AuthenticatedPayoutsRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
   AuthenticatedRosterRoute: typeof AuthenticatedRosterRoute
   AuthenticatedEventsIdRoute: typeof AuthenticatedEventsIdRoute
@@ -296,9 +356,12 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDependantsRoute: AuthenticatedDependantsRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
+  AuthenticatedPayoutsRoute: AuthenticatedPayoutsRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedRolesRoute: AuthenticatedRolesRoute,
   AuthenticatedRosterRoute: AuthenticatedRosterRoute,
   AuthenticatedEventsIdRoute: AuthenticatedEventsIdRoute,
