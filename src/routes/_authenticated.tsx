@@ -11,6 +11,9 @@ import {
   Menu,
   ShieldCheck,
   FileSpreadsheet,
+  CheckSquare,
+  Wallet,
+  FileBarChart2,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,19 +24,26 @@ export const Route = createFileRoute("/_authenticated")({
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/events", label: "Welfare Events", icon: HeartHandshake },
+  { to: "/events", label: "Welfare Cases", icon: HeartHandshake },
   { to: "/members", label: "Members", icon: Users },
   { to: "/dependants", label: "Dependants", icon: Baby },
 ];
 
+const reviewerNav = [
+  { to: "/approvals", label: "Treasurer Approvals", icon: CheckSquare },
+];
+
 const adminNav = [
+  { to: "/payouts", label: "Payouts", icon: Wallet },
+  { to: "/reports", label: "Reports", icon: FileBarChart2 },
   { to: "/roles", label: "Role Management", icon: ShieldCheck },
   { to: "/roster", label: "Teacher Roster", icon: FileSpreadsheet },
 ];
 
 
+
 function AuthLayout() {
-  const { user, isLoading, profile, isAdmin, signOut } = useAuth();
+  const { user, isLoading, profile, isAdmin, isTreasurer, isReviewer, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
