@@ -21,16 +21,18 @@ export const Route = createFileRoute("/_authenticated/roles")({
   component: RolesPage,
 });
 
-const ROLE_OPTIONS: AppRole[] = ["member", "committee", "admin"];
+const ROLE_OPTIONS: AppRole[] = ["member", "treasurer", "committee", "admin"];
 
 const roleLabel: Record<AppRole, string> = {
   admin: "Admin",
+  treasurer: "Treasurer",
   committee: "Welfare Committee",
   member: "Member",
 };
 
 const roleVariant: Record<AppRole, "default" | "secondary" | "outline"> = {
   admin: "default",
+  treasurer: "default",
   committee: "secondary",
   member: "outline",
 };

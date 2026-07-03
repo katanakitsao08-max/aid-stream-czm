@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       contributions: {
         Row: {
           amount: number
@@ -21,10 +51,16 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          member_comment: string | null
           mpesa_code: string | null
           notes: string | null
           paid_at: string
+          payment_date: string | null
           recorded_by: string | null
+          rejection_reason: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: Database["public"]["Enums"]["contribution_status"]
         }
         Insert: {
@@ -33,10 +69,16 @@ export type Database = {
           created_at?: string
           event_id: string
           id?: string
+          member_comment?: string | null
           mpesa_code?: string | null
           notes?: string | null
           paid_at?: string
+          payment_date?: string | null
           recorded_by?: string | null
+          rejection_reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["contribution_status"]
         }
         Update: {
@@ -45,10 +87,16 @@ export type Database = {
           created_at?: string
           event_id?: string
           id?: string
+          member_comment?: string | null
           mpesa_code?: string | null
           notes?: string | null
           paid_at?: string
+          payment_date?: string | null
           recorded_by?: string | null
+          rejection_reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["contribution_status"]
         }
         Relationships: [
@@ -99,6 +147,57 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          case_id: string | null
+          contribution_id: string | null
+          created_at: string
+          id: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          case_id?: string | null
+          contribution_id?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          case_id?: string | null
+          contribution_id?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "welfare_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_contribution_id_fkey"
+            columns: ["contribution_id"]
+            isOneToOne: false
+            referencedRelation: "contributions"
             referencedColumns: ["id"]
           },
         ]
@@ -240,8 +339,11 @@ export type Database = {
       welfare_events: {
         Row: {
           affected_member_id: string | null
+          beneficiary_name: string | null
+          contribution_per_member: number | null
           created_at: string
           created_by: string | null
+          deadline: string | null
           description: string | null
           event_date: string
           event_type: Database["public"]["Enums"]["event_type"]
@@ -253,8 +355,11 @@ export type Database = {
         }
         Insert: {
           affected_member_id?: string | null
+          beneficiary_name?: string | null
+          contribution_per_member?: number | null
           created_at?: string
           created_by?: string | null
+          deadline?: string | null
           description?: string | null
           event_date?: string
           event_type?: Database["public"]["Enums"]["event_type"]
@@ -266,8 +371,11 @@ export type Database = {
         }
         Update: {
           affected_member_id?: string | null
+          beneficiary_name?: string | null
+          contribution_per_member?: number | null
           created_at?: string
           created_by?: string | null
+          deadline?: string | null
           description?: string | null
           event_date?: string
           event_type?: Database["public"]["Enums"]["event_type"]
@@ -287,11 +395,69 @@ export type Database = {
           },
         ]
       }
+      welfare_payouts: {
+        Row: {
+          amount: number
+          case_id: string
+          created_at: string
+          id: string
+          method: string | null
+          notes: string | null
+          paid_at: string
+          paid_to: string
+          recorded_by: string | null
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          case_id: string
+          created_at?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string
+          paid_to: string
+          recorded_by?: string | null
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          case_id?: string
+          created_at?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string
+          paid_to?: string
+          recorded_by?: string | null
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "welfare_payouts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "welfare_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      case_roster: {
+        Args: { _case_id: string }
+        Returns: {
+          full_name: string
+          membership_number: string
+          payment_date: string
+          status: string
+          user_id: string
+        }[]
+      }
+      dashboard_stats: { Args: never; Returns: Json }
       event_totals: {
         Args: { event_ids?: string[] }
         Returns: {
@@ -310,10 +476,22 @@ export type Database = {
       next_membership_number: { Args: never; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "member" | "committee"
-      contribution_status: "pending" | "confirmed"
-      event_status: "open" | "closed"
-      event_type: "bereavement" | "emergency" | "other"
+      app_role: "admin" | "member" | "committee" | "treasurer"
+      contribution_status:
+        | "pending"
+        | "confirmed"
+        | "approved"
+        | "rejected"
+        | "verification_requested"
+      event_status: "open" | "closed" | "draft" | "active" | "completed"
+      event_type:
+        | "bereavement"
+        | "emergency"
+        | "other"
+        | "hospital"
+        | "school"
+        | "retirement"
+        | "disaster"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -441,10 +619,24 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "member", "committee"],
-      contribution_status: ["pending", "confirmed"],
-      event_status: ["open", "closed"],
-      event_type: ["bereavement", "emergency", "other"],
+      app_role: ["admin", "member", "committee", "treasurer"],
+      contribution_status: [
+        "pending",
+        "confirmed",
+        "approved",
+        "rejected",
+        "verification_requested",
+      ],
+      event_status: ["open", "closed", "draft", "active", "completed"],
+      event_type: [
+        "bereavement",
+        "emergency",
+        "other",
+        "hospital",
+        "school",
+        "retirement",
+        "disaster",
+      ],
     },
   },
 } as const
