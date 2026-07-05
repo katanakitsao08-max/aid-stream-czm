@@ -189,17 +189,28 @@ function EventDetail() {
             <CardTitle className="text-base">Submit your contribution</CardTitle>
             {pendingSubs.length > 0 && <Badge variant="secondary">{pendingSubs.length} pending review</Badge>}
           </CardHeader>
-          <CardContent>
-            <SubmitContributionDialog
-              eventId={id}
-              eventTitle={event.title}
-              suggestedAmount={event.contribution_per_member ? Number(event.contribution_per_member) : undefined}
-              contributorId={profile.id}
-              onSaved={() => {
-                qc.invalidateQueries({ queryKey: ["contribs-scoped", id] });
-                qc.invalidateQueries({ queryKey: ["case-roster", id] });
-              }}
-            />
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <PesapalPayDialog
+                caseId={id}
+                eventTitle={event.title}
+                suggestedAmount={event.contribution_per_member ? Number(event.contribution_per_member) : undefined}
+                defaultPhone={profile.phone ?? undefined}
+              />
+              <SubmitContributionDialog
+                eventId={id}
+                eventTitle={event.title}
+                suggestedAmount={event.contribution_per_member ? Number(event.contribution_per_member) : undefined}
+                contributorId={profile.id}
+                onSaved={() => {
+                  qc.invalidateQueries({ queryKey: ["contribs-scoped", id] });
+                  qc.invalidateQueries({ queryKey: ["case-roster", id] });
+                }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pay online with Pesapal (M-Pesa, card) for instant approval, or submit an M-Pesa code manually for treasurer review.
+            </p>
             {myContribs.length > 0 && (
               <div className="mt-4">
                 <p className="mb-2 text-sm font-medium">Your submissions</p>
