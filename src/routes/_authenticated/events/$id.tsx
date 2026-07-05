@@ -499,3 +499,69 @@ function SubmitContributionDialog({
     </Dialog>
   );
 }
+
+function PesapalPayDialog({
+  caseId, eventTitle, suggestedAmount, defaultPhone,
+}: {
+  caseId: string;
+  eventTitle: string;
+  suggestedAmount?: number;
+  defaultPhone?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState(suggestedAmount ? String(suggestedAmount) : "");
+  const [phone, setPhone] = useState(defaultPhone ?? "");
+  const [busy, setBusy] = useState(false);
+  const initiate = useServerFn(initiatePesapalPayment);
+
+  const pay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = Number(amount);
+    if (!amt || amt <= 0) return toast.error("Enter a valid amount");
+    setBusy(true);
+    try {
+      const res = await initiate({ data: { caseId, amount: amt, phone: phone || null } });
+      toast.success("Redirecting to Pesapal…");
+      window.location.href = res.redirectUrl;
+    } catch (err) {
+      setBusy(false);
+      toast.error(err instanceof Error ? err.message : "Could not start payment");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="default">
+          <CreditCard className="mr-2 h-4 w-4" /> Pay with Pesapal
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Pay for "{eventTitle}"</DialogTitle>
+        </DialogHeader>
+        <div className="rounded-md border border-accent/40 bg-accent/5 p-4 text-sm">
+          You will be redirected to Pesapal's secure checkout to complete payment via M-Pesa or card.
+          Your contribution is approved automatically once Pesapal confirms the payment.
+        </div>
+        <form onSubmit={pay} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Amount (KES)</Label>
+              <Input type="number" min={1} required value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Phone (optional)</Label>
+              <Input placeholder="2547XXXXXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={busy}>
+              {busy ? "Starting…" : "Continue to Pesapal"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
