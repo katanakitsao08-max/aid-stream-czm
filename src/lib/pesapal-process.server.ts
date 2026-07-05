@@ -96,7 +96,7 @@ export async function processPesapalUpdate(orderTrackingId: string): Promise<Pro
     }
   }
 
-  await supabaseAdmin.from("pesapal_transactions").update(patch).eq("id", tx.id);
+  await supabaseAdmin.from("pesapal_transactions").update(patch as never).eq("id", tx.id);
 
   await supabaseAdmin.from("audit_logs").insert({
     actor_id: tx.contributor_id,
