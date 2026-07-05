@@ -23,6 +23,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events/index'
 import { Route as ApiPublicPesapalIpnRouteImport } from './routes/api/public/pesapal-ipn'
+import { Route as ApiPublicPesapalCallbackRouteImport } from './routes/api/public/pesapal-callback'
 import { Route as ApiPublicAdminRecoveryRouteImport } from './routes/api/public/admin-recovery'
 import { Route as AuthenticatedReceiptsContributionIdRouteImport } from './routes/_authenticated/receipts/$contributionId'
 import { Route as AuthenticatedEventsIdRouteImport } from './routes/_authenticated/events/$id'
@@ -97,6 +98,12 @@ const ApiPublicPesapalIpnRoute = ApiPublicPesapalIpnRouteImport.update({
   path: '/api/public/pesapal-ipn',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPesapalCallbackRoute =
+  ApiPublicPesapalCallbackRouteImport.update({
+    id: '/api/public/pesapal-callback',
+    path: '/api/public/pesapal-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAdminRecoveryRoute = ApiPublicAdminRecoveryRouteImport.update({
   id: '/api/public/admin-recovery',
   path: '/api/public/admin-recovery',
@@ -129,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/events/$id': typeof AuthenticatedEventsIdRoute
   '/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
   '/api/public/admin-recovery': typeof ApiPublicAdminRecoveryRoute
+  '/api/public/pesapal-callback': typeof ApiPublicPesapalCallbackRoute
   '/api/public/pesapal-ipn': typeof ApiPublicPesapalIpnRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
 }
@@ -147,6 +155,7 @@ export interface FileRoutesByTo {
   '/events/$id': typeof AuthenticatedEventsIdRoute
   '/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
   '/api/public/admin-recovery': typeof ApiPublicAdminRecoveryRoute
+  '/api/public/pesapal-callback': typeof ApiPublicPesapalCallbackRoute
   '/api/public/pesapal-ipn': typeof ApiPublicPesapalIpnRoute
   '/events': typeof AuthenticatedEventsIndexRoute
 }
@@ -167,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/events/$id': typeof AuthenticatedEventsIdRoute
   '/_authenticated/receipts/$contributionId': typeof AuthenticatedReceiptsContributionIdRoute
   '/api/public/admin-recovery': typeof ApiPublicAdminRecoveryRoute
+  '/api/public/pesapal-callback': typeof ApiPublicPesapalCallbackRoute
   '/api/public/pesapal-ipn': typeof ApiPublicPesapalIpnRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
 }
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/events/$id'
     | '/receipts/$contributionId'
     | '/api/public/admin-recovery'
+    | '/api/public/pesapal-callback'
     | '/api/public/pesapal-ipn'
     | '/events/'
   fileRoutesByTo: FileRoutesByTo
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/events/$id'
     | '/receipts/$contributionId'
     | '/api/public/admin-recovery'
+    | '/api/public/pesapal-callback'
     | '/api/public/pesapal-ipn'
     | '/events'
   id:
@@ -224,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated/events/$id'
     | '/_authenticated/receipts/$contributionId'
     | '/api/public/admin-recovery'
+    | '/api/public/pesapal-callback'
     | '/api/public/pesapal-ipn'
     | '/_authenticated/events/'
   fileRoutesById: FileRoutesById
@@ -234,6 +247,7 @@ export interface RootRouteChildren {
   AdminRecoveryRoute: typeof AdminRecoveryRoute
   LoginRoute: typeof LoginRoute
   ApiPublicAdminRecoveryRoute: typeof ApiPublicAdminRecoveryRoute
+  ApiPublicPesapalCallbackRoute: typeof ApiPublicPesapalCallbackRoute
   ApiPublicPesapalIpnRoute: typeof ApiPublicPesapalIpnRoute
 }
 
@@ -337,6 +351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPesapalIpnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pesapal-callback': {
+      id: '/api/public/pesapal-callback'
+      path: '/api/public/pesapal-callback'
+      fullPath: '/api/public/pesapal-callback'
+      preLoaderRoute: typeof ApiPublicPesapalCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/admin-recovery': {
       id: '/api/public/admin-recovery'
       path: '/api/public/admin-recovery'
@@ -400,6 +421,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRecoveryRoute: AdminRecoveryRoute,
   LoginRoute: LoginRoute,
   ApiPublicAdminRecoveryRoute: ApiPublicAdminRecoveryRoute,
+  ApiPublicPesapalCallbackRoute: ApiPublicPesapalCallbackRoute,
   ApiPublicPesapalIpnRoute: ApiPublicPesapalIpnRoute,
 }
 export const routeTree = rootRouteImport
