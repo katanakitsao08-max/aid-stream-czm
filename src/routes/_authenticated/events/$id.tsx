@@ -18,8 +18,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft, Download, Lock, Unlock, Smartphone, CheckCircle2, XCircle, Receipt, HelpCircle,
+  ArrowLeft, Download, Lock, Unlock, Smartphone, CheckCircle2, XCircle, Receipt, HelpCircle, CreditCard,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { initiatePesapalPayment } from "@/lib/pesapal.functions";
 import { toast } from "sonner";
 import { formatKES } from "@/lib/format";
 import { StatusPill } from "@/routes/_authenticated/dashboard";
