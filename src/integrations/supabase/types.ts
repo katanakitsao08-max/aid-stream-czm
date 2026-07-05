@@ -202,6 +202,121 @@ export type Database = {
           },
         ]
       }
+      pesapal_ipns: {
+        Row: {
+          created_at: string
+          environment: string
+          id: string
+          ipn_id: string
+          notification_type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          environment: string
+          id?: string
+          ipn_id: string
+          notification_type?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          environment?: string
+          id?: string
+          ipn_id?: string
+          notification_type?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      pesapal_transactions: {
+        Row: {
+          amount: number
+          case_id: string | null
+          confirmation_code: string | null
+          contribution_id: string | null
+          contributor_id: string | null
+          created_at: string
+          currency: string
+          environment: string
+          id: string
+          last_error: string | null
+          merchant_reference: string
+          order_tracking_id: string | null
+          payment_method: string | null
+          raw_status: Json | null
+          raw_submit: Json | null
+          redirect_url: string | null
+          status: string
+          status_code: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          case_id?: string | null
+          confirmation_code?: string | null
+          contribution_id?: string | null
+          contributor_id?: string | null
+          created_at?: string
+          currency?: string
+          environment: string
+          id?: string
+          last_error?: string | null
+          merchant_reference: string
+          order_tracking_id?: string | null
+          payment_method?: string | null
+          raw_status?: Json | null
+          raw_submit?: Json | null
+          redirect_url?: string | null
+          status?: string
+          status_code?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          case_id?: string | null
+          confirmation_code?: string | null
+          contribution_id?: string | null
+          contributor_id?: string | null
+          created_at?: string
+          currency?: string
+          environment?: string
+          id?: string
+          last_error?: string | null
+          merchant_reference?: string
+          order_tracking_id?: string | null
+          payment_method?: string | null
+          raw_status?: Json | null
+          raw_submit?: Json | null
+          redirect_url?: string | null
+          status?: string
+          status_code?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pesapal_transactions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "welfare_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pesapal_transactions_contribution_id_fkey"
+            columns: ["contribution_id"]
+            isOneToOne: false
+            referencedRelation: "contributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pesapal_transactions_contributor_id_fkey"
+            columns: ["contributor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
