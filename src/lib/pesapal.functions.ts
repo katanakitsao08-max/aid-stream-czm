@@ -78,7 +78,7 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
       currency: "KES",
       status: "PENDING",
       redirect_url: submit.redirect_url,
-      raw_submit: submit as unknown as object,
+      raw_submit: submit as unknown as Record<string, unknown>,
     });
     if (insErr) throw new Error(insErr.message);
 
