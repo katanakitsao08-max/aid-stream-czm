@@ -18,8 +18,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft, Download, Lock, Unlock, Smartphone, CheckCircle2, XCircle, Receipt, HelpCircle,
+  ArrowLeft, Download, Lock, Unlock, Smartphone, CheckCircle2, XCircle, Receipt, HelpCircle, CreditCard,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { initiatePesapalPayment } from "@/lib/pesapal.functions";
 import { toast } from "sonner";
 import { formatKES } from "@/lib/format";
 import { StatusPill } from "@/routes/_authenticated/dashboard";
@@ -189,17 +191,28 @@ function EventDetail() {
             <CardTitle className="text-base">Submit your contribution</CardTitle>
             {pendingSubs.length > 0 && <Badge variant="secondary">{pendingSubs.length} pending review</Badge>}
           </CardHeader>
-          <CardContent>
-            <SubmitContributionDialog
-              eventId={id}
-              eventTitle={event.title}
-              suggestedAmount={event.contribution_per_member ? Number(event.contribution_per_member) : undefined}
-              contributorId={profile.id}
-              onSaved={() => {
-                qc.invalidateQueries({ queryKey: ["contribs-scoped", id] });
-                qc.invalidateQueries({ queryKey: ["case-roster", id] });
-              }}
-            />
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <PesapalPayDialog
+                caseId={id}
+                eventTitle={event.title}
+                suggestedAmount={event.contribution_per_member ? Number(event.contribution_per_member) : undefined}
+                defaultPhone={profile.phone ?? undefined}
+              />
+              <SubmitContributionDialog
+                eventId={id}
+                eventTitle={event.title}
+                suggestedAmount={event.contribution_per_member ? Number(event.contribution_per_member) : undefined}
+                contributorId={profile.id}
+                onSaved={() => {
+                  qc.invalidateQueries({ queryKey: ["contribs-scoped", id] });
+                  qc.invalidateQueries({ queryKey: ["case-roster", id] });
+                }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pay online with Pesapal (M-Pesa, card) for instant approval, or submit an M-Pesa code manually for treasurer review.
+            </p>
             {myContribs.length > 0 && (
               <div className="mt-4">
                 <p className="mb-2 text-sm font-medium">Your submissions</p>
@@ -480,6 +493,72 @@ function SubmitContributionDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={saving}>{saving ? "Submitting…" : "Submit for approval"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PesapalPayDialog({
+  caseId, eventTitle, suggestedAmount, defaultPhone,
+}: {
+  caseId: string;
+  eventTitle: string;
+  suggestedAmount?: number;
+  defaultPhone?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState(suggestedAmount ? String(suggestedAmount) : "");
+  const [phone, setPhone] = useState(defaultPhone ?? "");
+  const [busy, setBusy] = useState(false);
+  const initiate = useServerFn(initiatePesapalPayment);
+
+  const pay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = Number(amount);
+    if (!amt || amt <= 0) return toast.error("Enter a valid amount");
+    setBusy(true);
+    try {
+      const res = await initiate({ data: { caseId, amount: amt, phone: phone || null } });
+      toast.success("Redirecting to Pesapal…");
+      window.location.href = res.redirectUrl;
+    } catch (err) {
+      setBusy(false);
+      toast.error(err instanceof Error ? err.message : "Could not start payment");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="default">
+          <CreditCard className="mr-2 h-4 w-4" /> Pay with Pesapal
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Pay for "{eventTitle}"</DialogTitle>
+        </DialogHeader>
+        <div className="rounded-md border border-accent/40 bg-accent/5 p-4 text-sm">
+          You will be redirected to Pesapal's secure checkout to complete payment via M-Pesa or card.
+          Your contribution is approved automatically once Pesapal confirms the payment.
+        </div>
+        <form onSubmit={pay} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Amount (KES)</Label>
+              <Input type="number" min={1} required value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Phone (optional)</Label>
+              <Input placeholder="2547XXXXXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={busy}>
+              {busy ? "Starting…" : "Continue to Pesapal"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
