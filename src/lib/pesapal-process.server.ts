@@ -85,14 +85,21 @@ export async function processPesapalUpdate(orderTrackingId: string): Promise<Pro
       contributionId = inserted.id;
       patch.contribution_id = inserted.id;
 
-      await supabaseAdmin.from("notifications").insert({
-        user_id: tx.contributor_id,
-        type: "contribution.approved",
-        title: "Contribution received",
-        body: `Your payment of KES ${Number(tx.amount).toLocaleString()} was received and approved.`,
-        case_id: tx.case_id,
-        contribution_id: inserted.id,
-      }).then(() => {}, () => {});
+      const { data: prof } = await supabaseAdmin
+        .from("profiles")
+        .select("user_id")
+        .eq("id", tx.contributor_id)
+        .maybeSingle();
+      if (prof?.user_id) {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: prof.user_id,
+          type: "contribution.approved",
+          title: "Contribution received",
+          body: `Your payment of KES ${Number(tx.amount).toLocaleString()} was received and approved.`,
+          case_id: tx.case_id,
+          contribution_id: inserted.id,
+        }).then(() => {}, () => {});
+      }
     }
   }
 
