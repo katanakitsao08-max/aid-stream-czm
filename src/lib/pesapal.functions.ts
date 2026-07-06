@@ -75,7 +75,7 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
       order_tracking_id: submit.order_tracking_id,
       environment: pesapalEnvName(),
       case_id: data.caseId,
-      contributor_id: userId,
+      contributor_id: contributorProfileId,
       amount: data.amount,
       currency: "KES",
       status: "PENDING",
