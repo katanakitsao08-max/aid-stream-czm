@@ -33,15 +33,17 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, full_name, phone")
-      .eq("id", userId)
+      .eq("user_id", userId)
       .maybeSingle();
+    if (!profile) throw new Error("Complete your profile before contributing.");
+    const contributorProfileId = profile.id;
 
     // Reject duplicate active submission (mirrors the DB partial-unique behavior)
     const { data: dup } = await supabase
       .from("contributions")
       .select("id, status")
       .eq("event_id", data.caseId)
-      .eq("contributor_id", userId)
+      .eq("contributor_id", contributorProfileId)
       .in("status", ["pending", "approved", "confirmed", "verification_requested"])
       .maybeSingle();
     if (dup) throw new Error("You already have a submission for this case.");
@@ -73,7 +75,7 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
       order_tracking_id: submit.order_tracking_id,
       environment: pesapalEnvName(),
       case_id: data.caseId,
-      contributor_id: userId,
+      contributor_id: contributorProfileId,
       amount: data.amount,
       currency: "KES",
       status: "PENDING",
