@@ -57,9 +57,14 @@ async function pesapalFetch<T>(path: string, init: RequestInit & { asJson?: unkn
 
 type RegisterIPNResp = { ipn_id: string; url: string; created_date?: string; error?: unknown };
 
+const ipnCache = new Map<string, string>(); // key: `${env}|${url}` -> ipn_id
+
 export async function ensureIPN(baseUrl: string): Promise<string> {
   const url = `${baseUrl.replace(/\/$/, "")}/api/public/pesapal-ipn`;
   const env = pesapalEnvName();
+  const cacheKey = `${env}|${url}`;
+  const cached = ipnCache.get(cacheKey);
+  if (cached) return cached;
 
   const existing = await supabaseAdmin
     .from("pesapal_ipns")
@@ -67,7 +72,10 @@ export async function ensureIPN(baseUrl: string): Promise<string> {
     .eq("environment", env)
     .eq("url", url)
     .maybeSingle();
-  if (existing.data?.ipn_id) return existing.data.ipn_id;
+  if (existing.data?.ipn_id) {
+    ipnCache.set(cacheKey, existing.data.ipn_id);
+    return existing.data.ipn_id;
+  }
 
   const resp = await pesapalFetch<RegisterIPNResp>("/api/URLSetup/RegisterIPN", {
     method: "POST",
@@ -78,6 +86,7 @@ export async function ensureIPN(baseUrl: string): Promise<string> {
   await supabaseAdmin.from("pesapal_ipns").insert({
     environment: env, url, ipn_id: resp.ipn_id, notification_type: "GET",
   });
+  ipnCache.set(cacheKey, resp.ipn_id);
   return resp.ipn_id;
 }
 
